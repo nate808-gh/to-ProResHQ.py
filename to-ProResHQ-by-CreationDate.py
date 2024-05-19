@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 """
 Python Script to convert video files to ProRes 422 HQ format for editing
 FFMPEG must be installed
@@ -66,11 +65,11 @@ def convert_video_based_on_color_primaries(input_path, output_folder):
     output_path = output_folder / output_file_name
 
     if color_primaries == "bt709":
-        cmd = f"ffmpeg -i {shlex.quote(str(input_path))} -sws_flags print_info+accurate_rnd+bitexact+full_chroma_int -vf zscale=rangein=full:range=limited -c:v prores_ks -profile:v 3 -vendor ap10 -bits_per_mb 8000 -color_primaries bt709 -color_trc bt709 -color_range pc -colorspace bt709  -pix_fmt yuv422p10le -c:a pcm_s16le -c:a pcm_s16le {shlex.quote(str(output_path))}"
+        cmd = f"ffmpeg -i {shlex.quote(str(input_path))} -sws_flags print_info+accurate_rnd+bitexact+full_chroma_int -vf zscale=rangein=full:range=limited -c:v prores_ks -profile:v 3 -vendor ap10 -bits_per_mb 8000 -color_primaries bt709 -color_trc bt709 -color_range pc -colorspace bt709  -pix_fmt yuv422p10le -c:a pcm_s24le {shlex.quote(str(output_path))}"
     elif color_primaries == "bt2020":
-        cmd = f"ffmpeg -i {shlex.quote(str(input_path))} -sws_flags print_info+accurate_rnd+bitexact+full_chroma_int -vf zscale=rangein=full:range=limited -c:v prores_ks -profile:v 3 -vendor apl0 -bits_per_mb 8000 -color_primaries bt2020 -color_trc arib-std-b67 -color_range pc -colorspace bt2020nc  -pix_fmt yuv422p10le -c:a pcm_s16le {shlex.quote(str(output_path))}"
+        cmd = f"ffmpeg -i {shlex.quote(str(input_path))} -sws_flags print_info+accurate_rnd+bitexact+full_chroma_int -vf zscale=rangein=full:range=limited -c:v prores_ks -profile:v 3 -vendor apl0 -bits_per_mb 8000 -color_primaries bt2020 -color_trc arib-std-b67 -color_range pc -colorspace bt2020nc  -pix_fmt yuv422p10le -c:a pcm_s24le {shlex.quote(str(output_path))}"
     else:
-        cmd = f"ffmpeg -i {shlex.quote(str(input_path))} -c:v prores_ks -profile:v 3 -vendor apl0 -bits_per_mb 8000 -pix_fmt yuv422p10le -c:a pcm_s16le {shlex.quote(str(output_path))}"
+        cmd = f"ffmpeg -i {shlex.quote(str(input_path))} -c:v prores_ks -profile:v 3 -vendor apl0 -bits_per_mb 8000 -pix_fmt yuv422p10le -c:a pcm_s24le {shlex.quote(str(output_path))}"
 
     subprocess.run(cmd, shell=True)
     print(f"Converted '{input_path}' to ProRes HQ format at '{output_path}', using color primaries: {color_primaries or 'unknown'}")
@@ -105,4 +104,3 @@ if __name__ == "__main__":
         print("Usage: python script.py <path_to_video_or_directory>")
         sys.exit(1)
     main(sys.argv[1])
-
