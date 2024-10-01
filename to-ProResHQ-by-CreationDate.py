@@ -1,18 +1,4 @@
 """
-Copyright 2024 nate808-gh
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
-"""
 Python Script to convert video files to ProRes 422 HQ format for editing
 FFMPEG must be installed
 If a single file is specified it will be converted
@@ -61,8 +47,19 @@ def convert_video_based_on_color_primaries(input_path, output_folder):
     creation_time_or_filename = get_creation_time_or_filename(input_path)
     color_primaries = get_color_primaries(input_path)
 
+    # Initial output filename
     output_file_name = f"{creation_time_or_filename}_ProResHQ.mov"
     output_path = output_folder / output_file_name
+
+    # Check if the output file already exists and append a three-digit number if it does
+    if output_path.exists():
+        counter = 1
+        while True:
+            output_file_name = f"{creation_time_or_filename}_{counter:03d}_ProResHQ.mov"
+            output_path = output_folder / output_file_name
+            if not output_path.exists():
+                break
+            counter += 1
 
     if color_primaries == "bt709":
         cmd = f"ffmpeg -i {shlex.quote(str(input_path))} -sws_flags print_info+accurate_rnd+bitexact+full_chroma_int -vf zscale=rangein=full:range=limited -c:v prores_ks -profile:v 3 -vendor ap10 -bits_per_mb 8000 -color_primaries bt709 -color_trc bt709 -color_range pc -colorspace bt709  -pix_fmt yuv422p10le -c:a pcm_s24le {shlex.quote(str(output_path))}"
@@ -104,3 +101,4 @@ if __name__ == "__main__":
         print("Usage: python script.py <path_to_video_or_directory>")
         sys.exit(1)
     main(sys.argv[1])
+
