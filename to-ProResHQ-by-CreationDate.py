@@ -15,7 +15,7 @@ limitations under the License.
 
 """
 Python Script to convert video files to ProRes 422 HQ format for editing
-FFMPEG must be installed
+FFMPEG must be installed with the prores_ks_vulkan encoder enabled
 If a single file is specified it will be converted
 If a folder is specified all videos in the folder and subfolders will be converted
 If the Creation Date is present in the video metadata, the ProRes file will be renamed using the Creation Date and Time (UTC)
@@ -91,33 +91,39 @@ def convert_video_based_on_color_primaries(input_path, output_folder):
 
     if color_primaries == "bt709":
         cmd = (
-            f"ffmpeg -i {shlex.quote(str(input_path))} "
+            f"ffmpeg -hide_banner -init_hw_device vulkan=vk:0 -filter_hw_device vk "
+            f"-i {shlex.quote(str(input_path))} -map 0:v:0 -map '0:a:0?' "
             f"-sws_flags print_info+accurate_rnd+bitexact+full_chroma_int "
-            f"-vf zscale=rangein=full:range=limited "
-            f"-c:v prores_ks -profile:v 3 -vendor ap10 -bits_per_mb 8000 "
-            f"-color_primaries bt709 -color_trc bt709 -color_range pc -colorspace bt709 "
-            f"-pix_fmt yuv422p10le -c:a pcm_s24le "
+            f'-vf "zscale=range=limited,format=yuv422p10le,'
+            f'setparams=range=limited:color_primaries=bt709:color_trc=bt709:colorspace=bt709,hwupload" '
+            f"-c:v prores_ks_vulkan -profile:v 3 -vendor fmpg "
+            f"-color_primaries bt709 -color_trc bt709 -color_range tv -colorspace bt709 "
+            f"-c:a pcm_s24le -movflags +write_colr "
             f"{shlex.quote(str(output_path))}"
         )
     elif color_primaries == "bt2020":
         cmd = (
-            f"ffmpeg -i {shlex.quote(str(input_path))} "
+            f"ffmpeg -hide_banner -init_hw_device vulkan=vk:0 -filter_hw_device vk "
+            f"-i {shlex.quote(str(input_path))} -map 0:v:0 -map '0:a:0?' "
             f"-sws_flags print_info+accurate_rnd+bitexact+full_chroma_int "
-            f"-vf zscale=rangein=full:range=limited "
-            f"-c:v prores_ks -profile:v 3 -vendor apl0 -bits_per_mb 8000 "
-            f"-color_primaries bt2020 -color_trc arib-std-b67 -color_range pc -colorspace bt2020nc "
-            f"-pix_fmt yuv422p10le -c:a pcm_s24le "
+            f'-vf "zscale=range=limited,format=yuv422p10le,'
+            f'setparams=range=limited:color_primaries=bt2020:color_trc=arib-std-b67:colorspace=bt2020nc,hwupload" '
+            f"-c:v prores_ks_vulkan -profile:v 3 -vendor fmpg "
+            f"-color_primaries bt2020 -color_trc arib-std-b67 -color_range tv -colorspace bt2020nc "
+            f"-c:a pcm_s24le -movflags +write_colr "
             f"{shlex.quote(str(output_path))}"
         )
     else:
         cmd = (
-            f"ffmpeg -i {shlex.quote(str(input_path))} "
-            f"-c:v prores_ks -profile:v 3 -vendor apl0 -bits_per_mb 8000 "
-            f"-pix_fmt yuv422p10le -c:a pcm_s24le "
+            f"ffmpeg -hide_banner -init_hw_device vulkan=vk:0 -filter_hw_device vk "
+            f"-i {shlex.quote(str(input_path))} -map 0:v:0 -map '0:a:0?' "
+            f'-vf "zscale=range=limited,format=yuv422p10le,setparams=range=limited,hwupload" '
+            f"-c:v prores_ks_vulkan -profile:v 3 -vendor fmpg "
+            f"-color_range tv -c:a pcm_s24le -movflags +write_colr "
             f"{shlex.quote(str(output_path))}"
         )
 
-    subprocess.run(cmd, shell=True)
+    subprocess.run(cmd, shell=True, check=True)
     print(
         f"Converted '{input_path}' to ProRes HQ format at '{output_path}', "
         f"using color primaries: {color_primaries or 'unknown'}"
@@ -153,5 +159,3 @@ if __name__ == "__main__":
         print("Usage: python script.py <path_to_video_or_directory>")
         sys.exit(1)
     main(sys.argv[1])
-
-
