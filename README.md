@@ -2,7 +2,7 @@ Python script that will convert any video file that FFMPEG can play to ProRes 42
 If the video contains the Creation Date in the metadata, the file gets renamed to the creation date. 
 This helps me sort the majority of my giant bucket-o-random videos recorded at different times on different cameras.
 
-To use it, you must have Python and FFMPEG installed
+To use it, you must have Python and FFmpeg installed with the prores_ks_vulkan encoder enabled
 
 Examples
 
